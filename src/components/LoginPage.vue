@@ -13,7 +13,7 @@
         </div>
         <div class="passwordContainer">
           <label for="password">Password</label>
-          <input id="userPassword" type="password" />
+          <input id="userPassword" type="password" placeholder="**********" />
         </div>
         <div class="submitBtn">
           <input type="submit" value="Se connecter" @click="connection" />
@@ -23,7 +23,7 @@
     <!-- Lien d'inscription -->
     <div class="signupContainer">
       <a>
-        <router-link to="/">Pas encore de compte?</router-link>
+        <router-link to="/user/signup">Pas encore de compte?</router-link>
       </a>
     </div>
     <div id="errorMessageContainer" v-if="errorMessage">
@@ -65,17 +65,21 @@ export default {
         email: userEmail,
         password: userPassword,
       };
-
-    fetch("http://localhost:3000/api/user/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=UTF-8",
-          'Access-Control-Allow-Origin': '*'
-        },
-        body: dataBody
-      }).then(function(response) {
-          return response;
-      })
+      console.log(JSON.stringify(dataBody));
+      let loginReq = new XMLHttpRequest();
+      loginReq.open("POST", "http://localhost:3000/api/user/login", true);
+      loginReq.onreadystatechange = () => {
+        if (loginReq.readyState === 4 && loginReq.status === 200) {
+          const response = JSON.parse(loginReq.responseText);
+          console.log(response);
+          localStorage.setItem('token', response.token);
+        } else {
+          console.log(loginReq);
+        }
+      };
+      loginReq.setRequestHeader("Accept", "application/json");
+      loginReq.setRequestHeader("Content-Type", "application/json");
+      loginReq.send(JSON.stringify(dataBody));
     },
   },
 };
@@ -89,6 +93,12 @@ $primaryColor: #fd2d02;
   .logoContainer {
     img {
       width: 100%;
+      @media (min-width: 425px) {
+        width: 65%;
+      }
+      @media (min-width: 768px) {
+        width: 80%;
+      }
     }
     @media (min-width: 768px) {
       width: 60%;
@@ -99,13 +109,16 @@ $primaryColor: #fd2d02;
     margin-bottom: 30px;
     form {
       label {
-        font-size: 20px;
-        display: block;
         color: $primaryColor;
+        font-size: 20px;
         font-weight: bold;
-        margin-bottom: 10px;
+        display: block;
+        margin: 0 10px 10px 0;
         @media (min-width: 1024px) {
           font-size: 30px;
+        }
+        @media (min-width: 2560px) {
+          font-size: 40px;
         }
       }
       input {
@@ -121,8 +134,8 @@ $primaryColor: #fd2d02;
         @media (min-width: 1024px) {
           height: 30px;
         }
-        @media (min-width: 1024px) {
-          height: 35px;
+        @media (min-width: 2560px) {
+          height: 60px;
         }
       }
       .submitBtn {
