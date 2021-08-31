@@ -1,8 +1,12 @@
 import Vue from "vue";
 import VueRouter from "vue-router";
-import LoginPage from "../views/Login.vue";
-import SignupComponent from "../views/Signup.vue";
-import UserProfile from "../views/User.vue";
+import Login from "../views/Login.vue";
+import Signup from "../views/Signup.vue";
+import User from "../views/User.vue";
+// import HomePage from "../views/Home.vue";
+import Create from "../views/Create.vue";
+import Home from "../views/Home.vue";
+
 
 Vue.use(VueRouter);
 
@@ -10,17 +14,27 @@ const routes = [
   {
     path: "/user/login",
     name: "Login",
-    component: LoginPage,
+    component: Login,
   },
   {
     path: "/user/signup",
     name: "Signup",
-    component: SignupComponent,
+    component: Signup,
   },
   {
     path: "/user/profile",
     name: "User",
-    component: UserProfile
+    component: User,
+  },
+  {
+    path: "/",
+    name: "Home",
+    component: Home,
+  },
+  {
+    path: "/post/new",
+    name: "Create",
+    component: Create
   },
   {
     path: "/about",
