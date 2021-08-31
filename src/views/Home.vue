@@ -1,17 +1,20 @@
 <template>
   <div class="home">
-    <LoginPage title="Groupomania"/>
+    <div>
+      <HomePage/>
+    </div>
   </div>
 </template>
 
 <script>
 // @ is an alias to /src
-import LoginPage from '@/components/LoginPage.vue'
+import HomePage from "@/components/HomePage.vue";
+
 
 export default {
   name: 'Home',
   components: {
-    LoginPage
+    HomePage
   }
 }
 </script>
