@@ -5,16 +5,17 @@
         <router-link to="/">
           <i class="fas fa-arrow-left"> </i>
         </router-link>
-        <img :src="userProfile.attachement" alt="photo de profile" />
+        <img :src="userProfile.attachement" alt="photo de profile" v-if="userProfile.attachement !== null"/>
+        <img src="../assets/images/icon.png" alt="photo de profile" v-else />
       </div>
       <div class="btnContainer">
         <div v-if="!edit">
           <button @click="changeEdit" class="editBtn profilBtn">Editer</button>
-          <button class="deleteBtn profilBtn">Supprimer</button>
+          <button class="deleteBtn profilBtn" @click="deleteUser">Supprimer</button>
         </div>
         <div v-else>
           <button @click="changeEdit" class="editBtn profilBtn">Annuler</button>
-          <input type="file" />
+          <input type="file" ref="image" id="image" @change="handleFileUpload()" />
         </div>
       </div>
     </div>
@@ -26,16 +27,17 @@
             <p>{{ error.message }}</p>
           </div>
         </div>
-        <form @submit="updateProfile" class="editForm">
+        <form @submit="updateProfile" class="editForm" enctype="multipart/form-data">
           <input id="usernameInput" v-on:change="checkErrors" type="text" placeholder="nom d'utilisateur" v-model="userProfileForm.username" />
-          <textarea id="story" name="story" rows="5" cols="33" placeholder="Courte bio" v-model="userProfileForm.bio"></textarea>
+          <textarea id="userBio" rows="5" cols="33" placeholder="Courte bio" v-model="userProfileForm.bio"></textarea>
           <button class="validationBtn profilBtn" type="submit">Valider</button>
           <button @click="resetForm" type="button" class="profilBtn deleteBtn">Reset</button>
         </form>
       </div>
       <div v-else>
-        <h1>{{ userProfile.username }}</h1>
-        <span>{{ userProfile.createdAt }}</span>
+        <h1>Bonjour {{ userProfile.username }}</h1>
+        <span>Profile actif depuis le: {{ userProfile.createdAt }}</span>
+
         <p v-if="!edit">{{ userProfile.bio }}</p>
       </div>
     </div>
@@ -43,67 +45,66 @@
 </template>
 
 <script>
+// import { mapState } from "vuex";
+
 export default {
   name: "UserProfile",
   data() {
     return {
-      userProfile: {
-        attachement: null,
-      },
+      image: "",
       edit: false,
-      userProfileForm: null,
+      userProfileForm: {
+        bio: "",
+        username: "",
+      },
       errors: [],
     };
   },
   async beforeMount() {
-    const response = await this.getProfile();
-    this.userProfile = response.data;
-    this.resetForm();
+    this.$store.dispatch("getUserProfile");
   },
-  computed: {},
+  computed: {
+    userProfile() {
+      return this.$store.state.userProfile;
+    },
+  },
   methods: {
+    handleFileUpload() {
+      this.image = this.$refs.image.files[0];
+    },
     changeEdit() {
       this.edit = !this.edit;
     },
-    async getProfile() {
-      const token = localStorage.getItem("token");
-      return this.axios.get("http://localhost:3000/api/user/profile", {
-        headers: {
-          Accept: "application/json",
-          Authorization: "Bearer " + token,
-        },
-      });
-    },
     async updateProfile(e) {
       e.preventDefault;
-      this.errors = [];
-      if (this.userProfileForm.username.length < 3) {
-        this.errors.push({
-          field: "username",
-          message: "too short",
-        });
-        console.log(this.errors);
-      }
-      if (this.errors.length < 1) {
-        try {
-          const token = localStorage.getItem("token");
-          console.log(this.userProfileForm);
-          const body = { ...this.userProfileForm };
 
-          const response = await this.axios.put("http://localhost:3000/api/user/profile", body, {
-            headers: {
-              Accept: "application/json",
-              Authorization: "Bearer " + token,
-            },
-          });
-          if (response.data) {
-            this.userProfile = response.data;
-            this.changeEdit();
-          }
-        } catch (err) {
-          console.log(err);
-        }
-      }
+      const username = document.getElementById("usernameInput").value;
+      const bio = document.getElementById("userBio").value;
+      let formData = new FormData();
+      formData.append("image", this.image);
+      formData.append("username", username);
+      formData.append("bio", bio);
+      console.log(formData, "FORM DATA");
+      const token = localStorage.getItem("token");
+
+      this.axios
+        .put("http://localhost:3000/api/user/profile", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Accept: "application/json",
+            Authorization: "Bearer " + token,
+          },
+        })
+        .then(() => {
+          console.log("SUCCESS!!");
+          this.changeEdit();
+          window.location.href = "/user/profile";
+        })
+        .catch(() => {
+          console.log(formData.bio, formData.username, "FAILURE!!");
+        });
+
+      this.errors = [];
     },
     checkErrors(e) {
       console.log(e.target.value);
@@ -115,6 +116,20 @@ export default {
       delete this.userProfileForm.id;
       delete this.userProfileForm.createdAt;
       delete this.userProfileForm.updatedAt;
+    },
+    async deleteUser() {
+      console.log("hello");
+      const token = localStorage.getItem("token");
+      const response = await this.axios.delete("http://localhost:3000/api/user/delete", {
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+      if (response.data) {
+        window.location.href = "#/user/login";
+        localStorage.clear();
+      }
     },
   },
 };
@@ -132,7 +147,7 @@ $validationColor: #4e920e;
   border: none;
   border-radius: 10px;
   margin-bottom: 20px;
-  padding: 10px 5px;
+  padding: 15px 10px;
 }
 .editBtn {
   background-color: $lightblueColor;
