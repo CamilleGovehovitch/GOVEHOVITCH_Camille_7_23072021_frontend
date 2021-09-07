@@ -1,5 +1,5 @@
 <template>
-  <div v-if="user">
+  <div v-if="user" class="postContainer">
     <div class="profilPictureContainer">
       <img :src="post.user.attachement" alt="photo de profile" />
     </div>
@@ -16,8 +16,11 @@
         </div>
         <div class="likeFeature">
           <span class="count">{{ post.dislikes.length }}</span>
-          <i class="far fa-thumbs-down" :class="disliked ? 'disliked' : ''" @click="dislike"></i>
+          <i class="far fa-thumbs-down" :class="dislikeByCurrentUser() ? 'disliked' : ''" @click="dislike"></i>
         </div>
+      </div>
+      <div class="adminContainer" v-if="post.user.is_admin">
+        <button @click="sendDeletePostToApi">Supprimer</button>
       </div>
     </div>
   </div>
@@ -51,7 +54,7 @@ export default {
     },
     likedByCurrentUser() {
       return this.post.likes.find((like) => {
-        console.log(like, "INSIDE FIND");
+        console.log(like, "INSIDE FIND LIKE");
         return like.userId === this.user.id;
       });
     },
@@ -71,27 +74,27 @@ export default {
         console.log(liked);
         this.post.likes.push(liked);
       }
-      //   const thumbsUps = document.querySelector(".fa-thumbs-up");
-      //   // for(thumbs of thumbsUps) {
-      //   //   console.log(thumbs);
-      //   // }
-      //   if (!thumbsUps.classList.contains("liked")) {
-      //     console.log("green");
-      //     thumbsUps.classList.add("liked");
-      //     this.sendLikeToApi();
-      //   } else {
-      //     thumbsUps.classList.remove("liked");
-      //     console.log("not green");
-      //   }
-
-      //   console.log(thumbsUps);
     },
-    dislike() {
+    dislikeByCurrentUser() {
+      return this.post.dislikes.find((dislike) => {
+        console.log(dislike, "INSIDE FIND DISLIKE");
+        return dislike.userId === this.user.id;
+      });
+    },
+    async dislike() {
       this.disliked = !this.disliked;
-      //   console.log("dislike");
-      //   const thumbsDown = document.querySelector(".fa-thumbs-down");
-      //   console.log(thumbsDown);
-      //   thumbsDown.classList.contains("disliked") ? thumbsDown.classList.remove("disliked") : thumbsDown.classList.add("disliked");
+      if (this.dislikeByCurrentUser()) {
+        const indexToDelete = this.post.dislikes.indexOf(this.dislikedByCurrentUser());
+        console.log(indexToDelete);
+        console.log(this.post.dislikes);
+        this.post.dislikes.slice(indexToDelete, 1);
+        console.log(this.post.dislikes);
+      } else {
+        const response = await this.sendDislikeToApi();
+        const disliked = response.data;
+        console.log(disliked);
+        this.post.dislikes.push(disliked);
+      }
     },
     sendLikeToApi() {
       console.log("like sended");
@@ -112,8 +115,19 @@ export default {
       console.log("unlike sended");
       const token = localStorage.getItem("token");
       console.log(token);
-      return this.axios.delete(
-        "http://localhost:3000/api/post/" + this.post.id + "/like",
+      return this.axios.delete("http://localhost:3000/api/post/" + this.post.id + "/like", {
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+    },
+    sendDislikeToApi() {
+      console.log("dislike sended");
+      const token = localStorage.getItem("token");
+      console.log(token);
+      return this.axios.post(
+        "http://localhost:3000/api/post/" + this.post.id + "/dislike",
         {},
         {
           headers: {
@@ -123,12 +137,26 @@ export default {
         }
       );
     },
-    sendDislikeToApi() {
-      console.log("dislike sended");
-    },
     sendUndislikeToApi() {
       console.log("undislike sended");
     },
+    async deletePost() {
+      const response = await this.sendDeletePostToApi();
+      if (response) {
+        location.reload();
+      }
+    },
+    sendDeletePostToApi() {
+      console.log("hello");
+      const token = localStorage.getItem("token");
+      console.log(token);
+      return this.axios.delete("http://localhost:3000/api/post/" + this.post.id, {
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+    }
   },
 };
 </script>
@@ -136,36 +164,96 @@ export default {
 <style lang="scss" scoped>
 $primaryColor: #fd2d02;
 
-.profilPictureContainer {
-  width: 30%;
-  img {
-    width: 50px;
-    border-radius: 50%;
-  }
+@mixin btn {
+  width: 80%;
+  color: white;
+  display: block;
+  border: none;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  padding: 15px 10px;
 }
-.postContent {
-  width: 70%;
-  .postContentTitle {
-    color: darken($primaryColor, 10%);
-    font-size: 18px;
-    font-weight: bold;
-  }
-  .postAttachement {
+
+.postContainer {
+  // border: solid;
+  // background-color: white;
+  // padding: 10px 5px;
+  display: flex;
+
+  .profilPictureContainer {
+    width: 30%;
     img {
-      width: 50%;
+      width: 50px;
+      border-radius: 50%;
+      @media (min-width: 768px) {
+        width: 180px;
+      }
     }
   }
-  .likeDislikeContainer {
-    display: flex;
-    justify-content: center;
-    .likeFeature {
-      margin-right: 10px;
-      span {
-        margin-right: 5px;
+  .postContent {
+    width: 70%;
+    .postContentTitle {
+      color: darken($primaryColor, 10%);
+      font-size: 18px;
+      font-weight: bold;
+      @media (min-width: 1024px) {
+        font-size: 25px;
+      }
+      @media (min-width: 1440px) {
+        font-size: 30px;
+      }
+      @media (min-width: 2560px) {
+        font-size: 50px;
+      }
+    }
+    p {
+      font-size: 16px;
+      @media (min-width: 1024px) {
+        font-size: 20px;
+      }
+      @media (min-width: 1440px) {
+        font-size: 30px;
+      }
+      @media (min-width: 1440px) {
+        font-size: 30px;
+      }
+      @media (min-width: 2560px) {
+        font-size: 33px;
+      }
+    }
+    .postAttachement {
+      img {
+        width: 50%;
+      }
+    }
+    .likeDislikeContainer {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      .likeFeature {
+        margin-right: 10px;
+        span {
+          margin-right: 5px;
+        }
+      }
+    }
+    .adminContainer {
+      button {
+        background-color: darken($primaryColor, 10%);
+        margin: auto;
+        @include btn;
+        transition: background-color ease-in-out 300ms;
+        &:hover {
+          background-color: $primaryColor;
+        }
+        @media (min-width: 768px) {
+          width: 50%;
+        }
       }
     }
   }
 }
+
 .liked {
   color: green;
 }
