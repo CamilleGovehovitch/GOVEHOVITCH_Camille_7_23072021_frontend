@@ -11,6 +11,7 @@ const state = {
   posts: [],
   userProfile: {},
   showLoading: false,
+  test: 'hello'
 };
 
 //to handle state
