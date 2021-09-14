@@ -1,5 +1,5 @@
 <template>
-  <div v-if="user" class="postContainer">
+  <div class="postContainer">
     <div class="profilPictureContainer">
       <img :src="post.user.attachement" alt="photo de profile" />
     </div>
@@ -19,7 +19,7 @@
           <i class="far fa-thumbs-down" :class="dislikeByCurrentUser() ? 'disliked' : ''" @click="dislike"></i>
         </div>
       </div>
-      <div class="adminContainer" v-if="post.user.is_admin">
+      <div class="adminContainer" v-if="userProfile.is_admin">
         <button @click="sendDeletePostToApi">Supprimer</button>
       </div>
     </div>
@@ -37,25 +37,19 @@ export default {
     };
   },
   async beforeMount() {
-    const response = await this.getProfile();
-    this.user = response.data;
-    console.log(this.post, this.user);
+    this.$store.dispatch("getUserProfile");
   },
   props: ["post"],
-  methods: {
-    async getProfile() {
-      const token = localStorage.getItem("token");
-      return this.axios.get("http://localhost:3000/api/user/profile", {
-        headers: {
-          Accept: "application/json",
-          Authorization: "Bearer " + token,
-        },
-      });
+  computed: {
+    userProfile() {
+      return this.$store.state.userProfile;
     },
+  },
+  methods: {
     likedByCurrentUser() {
       return this.post.likes.find((like) => {
         console.log(like, "INSIDE FIND LIKE");
-        return like.userId === this.user.id;
+        return like.userId === this.userProfile.id;
       });
     },
     async like() {
@@ -63,8 +57,6 @@ export default {
       if (this.likedByCurrentUser()) {
         const indexToDelete = this.post.likes.indexOf(this.likedByCurrentUser());
         console.log(indexToDelete);
-        // const response = await this.sendUnlikeToApi();
-        // const unliked = response.data;
         console.log(this.post.likes);
         this.post.likes.slice(indexToDelete, 1);
         console.log(this.post.likes);
@@ -78,7 +70,7 @@ export default {
     dislikeByCurrentUser() {
       return this.post.dislikes.find((dislike) => {
         console.log(dislike, "INSIDE FIND DISLIKE");
-        return dislike.userId === this.user.id;
+        return dislike.userId === this.userProfile.id;
       });
     },
     async dislike() {
@@ -156,7 +148,7 @@ export default {
           Authorization: "Bearer " + token,
         },
       });
-    }
+    },
   },
 };
 </script>
@@ -175,18 +167,18 @@ $primaryColor: #fd2d02;
 }
 
 .postContainer {
-  // border: solid;
-  // background-color: white;
-  // padding: 10px 5px;
   display: flex;
-
+  align-items: center;
   .profilPictureContainer {
     width: 30%;
     img {
-      width: 50px;
+      width: 70px;
       border-radius: 50%;
       @media (min-width: 768px) {
         width: 180px;
+      }
+      @media (min-width: 1440px) {
+        width: 200px;
       }
     }
   }
@@ -234,7 +226,19 @@ $primaryColor: #fd2d02;
         margin-right: 10px;
         span {
           margin-right: 5px;
+          @media (min-width: 1440px) {
+            font-size: 30px;
+            margin-right: 10px;
+          }
         }
+        i {
+          @media (min-width: 1440px) {
+            font-size: 80px;
+          }
+        }
+        @media (min-width: 1440px) {
+            margin-right: 20px;
+          }
       }
     }
     .adminContainer {

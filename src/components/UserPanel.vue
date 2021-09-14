@@ -59,6 +59,9 @@ $primaryColor: #fd2d02;
     img {
       width: 100px;
       border-radius: 50%;
+      @media (min-width: 1440px) {
+        width: 200px;
+      }
     }
   }
 }

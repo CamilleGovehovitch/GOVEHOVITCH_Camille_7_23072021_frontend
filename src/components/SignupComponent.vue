@@ -22,7 +22,8 @@
             </div>
           </div>
           <div>
-            <input type="submit" class="submitBtn" value="S'inscire" @click="userSubscription" />
+            <!-- <input type="submit" class="submitBtn" value="S'inscire" @click="userSubscription" /> -->
+            <button @click="validationInput">Inscrivez-vous</button>
           </div>
           <div></div>
         </form>
@@ -46,33 +47,29 @@ export default {
   name: "SignupComponent",
   data() {
     return {
-      title: "Groupomania",
-      email: "Email",
-      password: "Password",
       errorEmptyMessage: false,
       errorUnmatchMessage: false,
       errorMatchEmail: false,
     };
   },
   props: {
-    msg: {
+    email: {
       type: String,
     },
+    password: {
+      type: String
+    },
+    title: {
+      type: String,
+    }
   },
   methods: {
-    async userSubscription(e) {
-      e.preventDefault();
-      console.log("hello");
-      this.errorMessage = false;
+    validationInput() {
       const userEmail = document.getElementById("userEmail").value;
       const userPassword = document.getElementById("userPassword").value;
       const confirmPassword = document.getElementById("confirmPassword").value;
       const emailRegExp = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]{2,}\\.[a-z]{2,4}$");
 
-      const bodyReq = {
-        email: userEmail,
-        password: userPassword,
-      };
       if (userEmail === "" || userPassword === "" || confirmPassword === "") {
         return (this.errorEmptyMessage = true);
       }
@@ -82,17 +79,18 @@ export default {
       if (confirmPassword !== userPassword) {
         return (this.errorUnmatchMessage = true);
       }
-      const response = await this.axios.post("http://localhost:3000/api/user/signup", bodyReq, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
-      console.log(response.data);
-      if(response.data.userId) {
-        localStorage.setItem("token", response.data.token)
-        window.location.href = 'user/login'
-      }
+      this.emitSubscriptionData();
     },
+    emitSubscriptionData() {
+      const userEmail = document.getElementById("userEmail").value;
+      const userPassword = document.getElementById("userPassword").value;
+      const confirmPassword = document.getElementById("confirmPassword").value;
+      this.$emit('subscription-data', {
+          userEmail: userEmail,
+          userPassword: userPassword,
+          confirmPassword: confirmPassword
+          })
+    }
   },
 };
 </script>

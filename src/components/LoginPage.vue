@@ -9,11 +9,11 @@
       <h1>Connectez-vous</h1>
       <form method="POST">
         <div class="emailContainer">
-          <label for="userEmail">Email</label>
+          <label for="userEmail">{{ email }}</label>
           <input id="userEmail" type="email" placeholder="exemple@exemple.com" />
         </div>
         <div class="passwordContainer">
-          <label for="userPassword">Password</label>
+          <label for="userPassword">{{ password }}</label>
           <input id="userPassword" type="password" placeholder="**********" />
         </div>
         <div class="submitBtn">
@@ -47,35 +47,36 @@ export default {
     };
   },
   props: {
-    title: String,
+    email: {
+      type: String,
+    },
+    password: {
+      type: String
+    }
   },
   methods: {
-     async connection(e) {
-      e.preventDefault();
-      const userEmail = document.getElementById("userEmail").value;
-      const userPassword = document.getElementById("userPassword").value;
-      const emailRegExp = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]{2,}\\.[a-z]{2,4}$");
-
-      if (!emailRegExp.test(userEmail)) {
-        return (this.errorMessage = true);
+       async connection(e) {
+        e.preventDefault();
+        const userEmail = document.getElementById("userEmail").value;
+        const userPassword = document.getElementById("userPassword").value;
+        const emailRegExp = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]{2,}\\.[a-z]{2,4}$");
+        if (!emailRegExp.test(userEmail)) {
+          return (this.errorMessage = true);
+        }
+        let dataBody = {
+          email: userEmail,
+          password: userPassword,
+        };
+        const response = await this.axios.post("http://localhost:3000/api/user/login", dataBody, {
+          headers: {
+            Accept: "application/json",
+          },
+        });
+        if(response.data) {
+          localStorage.setItem("token", response.data.token)
+          window.location.href = '/'
+        }
       }
-
-      let dataBody = {
-        email: userEmail,
-        password: userPassword,
-      };
-      
-      const response = await this.axios.post("http://localhost:3000/api/user/login", dataBody, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
-
-      if(response.data) {
-        localStorage.setItem("token", response.data.token)
-        window.location.href = '/'
-      }
-    }
   },
 };
 </script>

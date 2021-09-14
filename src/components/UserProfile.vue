@@ -5,7 +5,7 @@
         <router-link to="/">
           <i class="fas fa-arrow-left"> </i>
         </router-link>
-        <img :src="userProfile.attachement" alt="photo de profile" v-if="userProfile.attachement !== null"/>
+        <img :src="userProfile.attachement" alt="photo de profile" v-if="userProfile.attachement !== null" />
         <img src="../assets/images/icon.png" alt="photo de profile" v-else />
       </div>
       <div class="btnContainer">
@@ -148,6 +148,9 @@ $validationColor: #4e920e;
   border-radius: 10px;
   margin-bottom: 20px;
   padding: 15px 10px;
+  @media (min-width: 1440px) {
+    font-size: 20px;
+  }
 }
 .editBtn {
   background-color: $lightblueColor;
@@ -181,6 +184,9 @@ $validationColor: #4e920e;
       img {
         width: 120px;
         border-radius: 50%;
+        @media (min-width: 1440px) {
+          width: 150px;
+        }
       }
     }
     .btnContainer {
