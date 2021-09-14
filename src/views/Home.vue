@@ -21,32 +21,43 @@
 // @ is an alias to /src
 import UserPanel from "@/components/UserPanel.vue";
 import PostTemplate from "@/components/PostTemplate.vue";
-// import HomePage from "@/components/HomePage.vue";
+
 
 export default {
   name: "Home",
   components: {
     UserPanel,
-    // HomePage
     PostTemplate,
   },
   data() {
     return {
       posts: null,
+      pages: null,
     };
   },
   async beforeMount() {
+    this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", true);
     const postsResponse = await this.getPostsFromApi();
-    this.posts = postsResponse.data;
-  },
+    this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", false);
 
+    this.posts = postsResponse.data.rows;
+    this.pages = postsResponse.data.count;
+  },
+  mounted() {
+    this.checkToken();
+  },
+  computed: {},
   methods: {
+    checkToken() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        console.log("empty token");
+        return (window.location.href = "#/user/login");
+      }
+    },
     getPostsFromApi() {
       const token = localStorage.getItem("token");
-      if (!token) {
-        window.location.href = "#/user/login";
-        console.log("empty");
-      }
       return this.axios.get("http://localhost:3000/api/post?limit=10&offset=1", {
         headers: {
           Accept: "application/json",
@@ -55,6 +66,7 @@ export default {
       });
     },
   },
+
   //appel fetch pr rafraichir les posts et les stocker ds un data, créer ta vue pr instancier les nouveaux posts
 };
 </script>
@@ -62,6 +74,16 @@ export default {
 <style lang="scss" scoped>
 $primaryColor: #fd2d02;
 
+.post {
+  border: solid 1px darken($primaryColor, 10%);
+  margin-bottom: 20px;
+  padding: 10px 5px;
+  box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.3);
+  transition: box-shadow ease-in-out 330ms;
+  &:hover {
+    box-shadow: 5px 5px 15px 5px rgba(0, 0, 0, 0.53);
+  }
+}
 .createPostContainer {
   position: fixed;
   left: 30px;

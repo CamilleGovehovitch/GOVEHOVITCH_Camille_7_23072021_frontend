@@ -1,8 +1,28 @@
 <template>
   <div id="app">
-    <router-view/>
+    <Loader v-if="showLoading" />
+    <router-view />
   </div>
 </template>
+
+<script>
+import Loader from "@/components/Loader.vue";
+import { mapState } from "vuex";
+
+export default {
+  components: {
+    Loader,
+  },
+  created() {
+    console.log("e");
+  },
+  computed: {
+    ...mapState({
+      showLoading: (state) => state.showLoading,
+    }),
+  },
+};
+</script>
 
 <style lang="scss">
 #app {
