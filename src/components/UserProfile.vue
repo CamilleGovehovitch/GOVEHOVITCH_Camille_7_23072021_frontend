@@ -2,20 +2,19 @@
   <section class="profilSection">
     <div class="profilPictureContainer">
       <div class="profilPicture">
-        <router-link to="/">
-          <i class="fas fa-arrow-left"> </i>
-        </router-link>
         <img :src="userProfile.attachement" alt="photo de profile" v-if="userProfile.attachement !== null" />
-        <img src="../assets/images/icon.png" alt="photo de profile" v-else />
+        <img src="../assets/images/icon.png" alt="photo de profile" v-else/>
+
+        <input type="file" ref="image" id="image" @change="handleFileUpload()" v-if="edit" />
       </div>
       <div class="btnContainer">
         <div v-if="!edit">
           <button @click="changeEdit" class="editBtn profilBtn">Editer</button>
           <button class="deleteBtn profilBtn" @click="deleteUser">Supprimer</button>
-        </div>
-        <div v-else>
-          <button @click="changeEdit" class="editBtn profilBtn">Annuler</button>
-          <input type="file" ref="image" id="image" @change="handleFileUpload()" />
+          <button class="logoutBtn profilBtn" @click="logout">Déconnexion</button>
+          <router-link to="/">
+            <button class="validationBtn profilBtn">Retour</button>
+          </router-link>
         </div>
       </div>
     </div>
@@ -27,16 +26,25 @@
             <p>{{ error.message }}</p>
           </div>
         </div>
+
         <form @submit="updateProfile" class="editForm" enctype="multipart/form-data">
-          <input id="usernameInput" v-on:change="checkErrors" type="text" placeholder="nom d'utilisateur" v-model="userProfileForm.username" />
+          <input
+            id="usernameInput"
+            v-on:change="checkErrors"
+            type="text"
+            placeholder="nom d'utilisateur"
+            v-model="userProfileForm.username"
+            value="test"
+          />
           <textarea id="userBio" rows="5" cols="33" placeholder="Courte bio" v-model="userProfileForm.bio"></textarea>
+          <button @click="changeEdit" class="editBtn profilBtn">Annuler</button>
           <button class="validationBtn profilBtn" type="submit">Valider</button>
           <button @click="resetForm" type="button" class="profilBtn deleteBtn">Reset</button>
         </form>
       </div>
       <div v-else>
         <h1>Bonjour {{ userProfile.username }}</h1>
-        <span>Profile actif depuis le: {{ userProfile.createdAt }}</span>
+        <span>Profile actif depuis le: {{ userSubscriptionDate }}</span>
 
         <p v-if="!edit">{{ userProfile.bio }}</p>
       </div>
@@ -52,7 +60,9 @@ export default {
   data() {
     return {
       image: "",
+      defaultImage: "frontend/src/assets/images/icon.png",
       edit: false,
+      test: null,
       userProfileForm: {
         bio: "",
         username: "",
@@ -66,6 +76,9 @@ export default {
   computed: {
     userProfile() {
       return this.$store.state.userProfile;
+    },
+    userSubscriptionDate() {
+      return this.$store.state.userSubscriptionDate;
     },
   },
   methods: {
@@ -131,39 +144,51 @@ export default {
         localStorage.clear();
       }
     },
+    logout() {
+      localStorage.clear();
+      window.location.href = "#/user/login";
+    },
   },
 };
 </script>
 
 <style lang="scss">
-$lightblueColor: #3e8af7;
+$lightblueColor: #599bf7;
 $primaryColor: #fd2d02;
 $validationColor: #4e920e;
+$logoutColor: #d6adff;
 
 @mixin profilBtn {
   width: 100%;
-  color: white;
+  color: black;
   display: block;
   border: none;
   border-radius: 10px;
   margin-bottom: 20px;
   padding: 15px 10px;
-  @media (min-width: 1440px) {
+  @media (min-width: 1024px) {
+    width: 65%;
+  }
+  @media (min-width: 768px) {
     font-size: 20px;
+    width: 50%;
   }
 }
 .editBtn {
   background-color: $lightblueColor;
   margin: 0 auto 10px auto;
   &:hover {
-    background-color: darken($lightblueColor, 10);
+    background-color: lighten($lightblueColor, 10);
   }
 }
 .deleteBtn {
   background-color: $primaryColor;
   margin: auto;
   &:hover {
-    background-color: darken($primaryColor, 10);
+    background-color: lighten($primaryColor, 20);
+  }
+  @media (min-width: 768px) {
+    width: 30%;
   }
 }
 .validationBtn {
@@ -171,6 +196,16 @@ $validationColor: #4e920e;
   margin: auto;
   &:hover {
     background-color: lighten($validationColor, 10);
+  }
+  @media (min-width: 768px) {
+    width: 30%;
+  }
+}
+.logoutBtn {
+  background-color: $logoutColor;
+  margin: auto;
+  &:hover {
+    background-color: lighten($logoutColor, 10);
   }
 }
 .profilSection {
@@ -181,9 +216,12 @@ $validationColor: #4e920e;
     margin-bottom: 20px;
     .profilPicture {
       width: 50%;
+      display: flex;
+      flex-direction: column;
       img {
         width: 120px;
         border-radius: 50%;
+        margin-bottom: 10px;
         @media (min-width: 1440px) {
           width: 150px;
         }
@@ -192,12 +230,14 @@ $validationColor: #4e920e;
     .btnContainer {
       width: 50%;
     }
+    a {
+      text-decoration: none;
+    }
     .profilBtn {
       @include profilBtn;
     }
     @media (min-width: 768px) {
-      width: 50%;
-      flex-direction: column;
+      width: 100%;
       align-items: center;
     }
   }
@@ -205,15 +245,16 @@ $validationColor: #4e920e;
     text-align: left;
     h1 {
       font-size: 30px;
+      margin-bottom: 20px;
     }
     span {
       display: block;
       font-size: 18px;
-      margin-bottom: 5px;
+      margin-bottom: 15px;
     }
     .profilContent {
       p {
-        margin: 0 0 10px 0;
+        margin: 0 0 20px 0;
       }
       span {
         font-weight: bold;
@@ -234,7 +275,7 @@ $validationColor: #4e920e;
       }
     }
     @media (min-width: 768px) {
-      width: 50%;
+      width: 100%;
     }
     .editForm {
       input {
@@ -253,6 +294,11 @@ $validationColor: #4e920e;
     button {
       @include profilBtn;
     }
+  }
+  @media (min-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
