@@ -23,12 +23,12 @@
     </section>
     <!-- Lien d'inscription -->
     <div class="signupContainer">
-      <a>
-        <router-link to="/user/signup">Pas encore de compte?</router-link>
-      </a>
+      <router-link to="/user/signup">Pas encore de compte?</router-link>
     </div>
     <div id="errorMessageContainer">
-      <p v-if="errorMessage" class="errorMessage">L'email n'a pas la forme requise</p>
+      <!-- <p v-if="errorMessage" class="errorMessage">L'email n'a pas la forme requise</p>
+      <p v-if="loginErrorMessage" class="errorMessage">{{ loginErrorMessage }}</p> -->
+      <p v-for="error in errors" :key="error" class="errorMessage">{{ error }}</p>
     </div>
   </div>
 </template>
@@ -36,13 +36,16 @@
 <script>
 export default {
   name: "LoginPage",
+  beforeMount() {
+    this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", false);
+  },
   data() {
     return {
       image: {
         path: "../assets/images/icon-above-font.png",
       },
       emailRegExp: "^[a-z0-9._-]+@[a-z0-9._-]{2,}\\.[a-z]{2,4}$",
-      errorMessage: false,
+      errors: [],
       apUrl: "http://localhost:3000/api",
     };
   },
@@ -51,32 +54,43 @@ export default {
       type: String,
     },
     password: {
-      type: String
-    }
+      type: String,
+    },
   },
   methods: {
-       async connection(e) {
-        e.preventDefault();
-        const userEmail = document.getElementById("userEmail").value;
-        const userPassword = document.getElementById("userPassword").value;
-        const emailRegExp = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]{2,}\\.[a-z]{2,4}$");
-        if (!emailRegExp.test(userEmail)) {
-          return (this.errorMessage = true);
-        }
-        let dataBody = {
-          email: userEmail,
-          password: userPassword,
-        };
-        const response = await this.axios.post("http://localhost:3000/api/user/login", dataBody, {
+    connection(e) {
+      e.preventDefault();
+      const userEmail = document.getElementById("userEmail").value;
+      const userPassword = document.getElementById("userPassword").value;
+      const emailRegExp = new RegExp("^[a-z0-9._-]+@[a-z0-9._-]{2,}\\.[a-z]{2,4}$");
+      if (userEmail === "" || userPassword === "") {
+        this.errors = [];
+        this.errors.push("L'email et/ou le mot de passe doivent être renseignés");
+      }
+      if (!emailRegExp.test(userEmail)) {
+        this.errors.push("L'email n'a pas la forme requise");
+      }
+      let dataBody = {
+        email: userEmail,
+        password: userPassword,
+      };
+      this.axios
+        .post("http://localhost:3000/api/user/login", dataBody, {
           headers: {
             Accept: "application/json",
           },
+        })
+        .then((response) => {
+          console.log(response);
+          this.errors = [];
+          localStorage.setItem("token", response.data.token);
+          window.location.href = "/";
+        })
+        .catch((error) => {
+          this.errors = [];
+          this.errors.push(error.response.data.error);
         });
-        if(response.data) {
-          localStorage.setItem("token", response.data.token)
-          window.location.href = '/'
-        }
-      }
+    },
   },
 };
 </script>
@@ -95,6 +109,9 @@ $primaryColor: #fd2d02;
       @media (min-width: 768px) {
         width: 80%;
       }
+      @media (min-width: 768px) {
+        width: 40%;
+      }
     }
     @media (min-width: 768px) {
       width: 60%;
@@ -106,6 +123,17 @@ $primaryColor: #fd2d02;
     h1 {
       color: darken($primaryColor, 10%);
       text-align: center;
+      font-weight: bold;
+      margin-bottom: 20px;
+      @media (min-width: 1024px) {
+        font-size: 20px;
+      }
+      @media (min-width: 1440px) {
+        font-size: 35px;
+      }
+      @media (min-width: 2560px) {
+        font-size: 40px;
+      }
     }
     form {
       label {
@@ -115,14 +143,14 @@ $primaryColor: #fd2d02;
         display: block;
         margin: 0 10px 10px 0;
         @media (min-width: 1024px) {
-          font-size: 30px;
+          font-size: 20px;
         }
         @media (min-width: 2560px) {
           font-size: 40px;
         }
       }
       input {
-        margin-bottom: 10px;
+        margin-bottom: 20px;
         height: 20px;
         width: 80%;
         border: none;
@@ -133,9 +161,11 @@ $primaryColor: #fd2d02;
         }
         @media (min-width: 1024px) {
           height: 30px;
+          font-size: 20px;
         }
         @media (min-width: 2560px) {
           height: 60px;
+          font-size: 40px;
         }
       }
       .submitBtn {
@@ -150,6 +180,13 @@ $primaryColor: #fd2d02;
           @media (min-width: 1024px) {
             font-size: 25px;
           }
+          @media (min-width: 1440px) {
+            font-size: 30px;
+          }
+          @media (min-width: 2560px) {
+            font-size: 40px;
+            height: 50px;
+          }
           &:hover {
             background-color: $primaryColor;
           }
@@ -163,18 +200,23 @@ $primaryColor: #fd2d02;
     }
   }
   .signupContainer {
+    margin-bottom: 20px;
     a {
       color: darken($primaryColor, 10%);
+      font-size: 18px;
       font-weight: bold;
       text-decoration: none;
       transition: color ease-in-out 300ms;
       &:hover {
         color: $primaryColor;
       }
+      @media (min-width: 2560px) {
+        font-size: 40px;
+      }
     }
   }
   .errorMessage {
-    color: $primaryColor;
+    color: darken($primaryColor, 10%);
     font-size: 18px;
     font-weight: bold;
   }
