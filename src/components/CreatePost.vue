@@ -2,20 +2,22 @@
   <div>
     <div class="header">
       <img src="../assets/images/icon.png" alt="" />
-      <h1>{{ title }}</h1>
+      <h1 v-if="this.update">{{ updateTitle }}</h1>
+      <h1 v-else>{{ createTitle }}</h1>
     </div>
     <div class="newPostContainer">
       <form action="">
         <label for="postTitle"> Titre</label>
-        <input type="text" id="postTitle" placeholder="Lorem Ipsum" v-model="title" />
+        <input type="text" id="postTitle" :value="!this.update ? '' : post.title" />
         <label for="postContent">Contenu</label>
-        <textarea id="postContent" rows="10"></textarea>
+        <textarea id="postContent" rows="10" :value="!this.update ? '' : post.content"></textarea>
         <div class="uploadFileContainer">
           <input type="file" id="image" ref="image" class="fileContent" @change="handleFileUpload" />
         </div>
         <div class="btnContainer">
           <div>
-            <button type="submit" class="validationBtn" @click="createPost">Envoyer</button>
+            <button type="submit" class="validationBtn" @click="createPost" v-if="this.$route.name === 'Create'">Envoyer</button>
+            <button type="submit" class="validationBtn" @click="updatePost" v-else>Mettre a jour</button>
           </div>
           <div>
             <router-link to="/">
@@ -24,6 +26,9 @@
           </div>
         </div>
       </form>
+      <div>
+        <p v-for="error in errors" :key="error" class="errorMessage">{{ error }}</p>
+      </div>
     </div>
   </div>
 </template>
@@ -33,23 +38,44 @@ export default {
   name: "CreatePost",
   data() {
     return {
-      title: "Créé votre post",
+      createTitle: "Créé votre post",
+      updateTitle: "Modifier votre post",
       image: "",
+      post: null,
+      update: false,
+      errors: [],
     };
+  },
+  async beforeMount() {
+    console.log("hey je peux créer");
+    console.log(this.$route.params);
+
+    this.$store.dispatch("getUserProfile");
+    console.log(this.$route.name);
+    if (this.$route.name === "Update") {
+      console.log("je me met à jour");
+      console.log(this.$route.params.id);
+
+      this.update = true;
+      await this.fetchPost();
+    }
+  },
+  computed: {
+    userProfile() {
+      return this.$store.state.userProfile;
+    },
   },
   methods: {
     async createPost(e) {
       e.preventDefault();
-      console.log("hello");
       const title = document.getElementById("postTitle").value;
       const content = document.getElementById("postContent").value;
-
       const token = localStorage.getItem("token");
       let formData = new FormData();
       formData.append("image", this.image);
       formData.append("title", title);
       formData.append("content", content);
-      console.log(formData);
+      console.log(formData, "FORMDATA");
       this.axios
         .post("http://localhost:3000/api/post/new", formData, {
           headers: {
@@ -59,27 +85,88 @@ export default {
           },
         })
         .then(() => {
-          console.log("success");
+          window.location.href = "/";
+        })
+        .catch(error => {
+          console.log("error", error.response.data.error);
+          this.errors = [];
+          this.errors.push(error.response.data.error);
+        });
+    },
+    handleFileUpload() {
+      this.image = this.$refs.image.files[0];
+    },
+    getPostFromApi() {
+      const token = localStorage.getItem("token");
+      const postId = this.$route.params.id;
+      return this.axios.get("http://localhost:3000/api/post/" + postId, {
+        headers: {
+          Accept: "application/json",
+          Authorization: "Bearer " + token,
+        },
+      });
+    },
+    async fetchPost() {
+      this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", true);
+      const postResponse = await this.getPostFromApi();
+      this.post = postResponse.data;
+      console.log(this.post);
+      // this.comments = postResponse.data.comment;
+      this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", false);
+    },
+    // emitUpdatePost() {
+    //   // const postId = this.$route.params.id;
+    //   const title = document.getElementById("postTitle").value;
+    //   const content = document.getElementById("postContent").value;
+    //   let formData = new FormData();
+    //   formData.append("image", this.image);
+    //   formData.append("title", title);
+    //   formData.append("content", content);
+    //   this.$emit("update-post-sent", {
+    //     formData: formData,
+    //     image: this.image,
+    //   });
+    // },
+    updatePost(e) {
+      e.preventDefault();
+      const title = document.getElementById("postTitle").value;
+      const content = document.getElementById("postContent").value;
+      const token = localStorage.getItem("token");
+      const postId = this.$route.params.id;
+      let formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("image", this.image);
+
+      console.log(formData, "FORM DATA");
+      this.axios
+        .put("http://localhost:3000/api/post/" + postId + "/edit", formData, {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "multipart/form-data",
+            Authorization: "Bearer " + token,
+          },
+        })
+        .then(() => {
           window.location.href = "/";
         })
         .catch((error) => {
-          console.log("error", error);
+          console.log(error);
         });
-
-      //   return this.axios.post(
-      //     "http://localhost:3000/api/post/new",
-      //     {},
-      //     {
-      //       headers: {
-      //         Accept: "application/json",
-      //         Authorization: "Bearer " + token,
-      //       },
-      //     }
-      //   );
     },
-    handleFileUpload() {
-      console.log(this.$refs.image.files[0]);
-      this.image = this.$refs.image.files[0];
+    //EVENTS
+    emitCreatePost() {
+      const title = document.getElementById("postTitle").value;
+      const content = document.getElementById("postContent").value;
+      const token = localStorage.getItem("token");
+      let formData = new FormData();
+      formData.append("title", title);
+      formData.append("content", content);
+      formData.append("image", this.image);
+      this.$emit("create-post-sent", {
+        formData,
+        token,
+      });
     },
   },
 };
@@ -110,7 +197,7 @@ $validationColor: #4e920e;
       width: 30%;
     }
     @media (min-width: 1440px) {
-      width: 40%;
+      width: 20%;
     }
     @media (min-width: 2560px) {
       width: 30%;
@@ -119,6 +206,7 @@ $validationColor: #4e920e;
   h1 {
     color: darken($primaryColor, 10%);
     margin: 0;
+    font-weight: bold;
   }
 }
 .newPostContainer {
@@ -195,4 +283,9 @@ $validationColor: #4e920e;
     }
   }
 }
+.errorMessage {
+    color: darken($primaryColor, 10%);
+    font-size: 18px;
+    font-weight: bold;
+  }
 </style>
