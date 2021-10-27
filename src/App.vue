@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Loader v-if="showLoading" />
+    <Loader v-if="postLoading" />
     <router-view />
   </div>
 </template>
@@ -13,18 +13,32 @@ export default {
   components: {
     Loader,
   },
-  created() {
-    console.log("e");
+  data() {
+    return {};
+  },
+  beforeMount() {
+    this.checkToken();
   },
   computed: {
     ...mapState({
-      showLoading: (state) => state.showLoading,
+      postLoading: (state) => state.postLoading,
     }),
+  },
+  methods: {
+    checkToken() {
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        return (window.location.href = "#/user/login");
+      }
+    },
   },
 };
 </script>
 
 <style lang="scss">
+@import "./sass/utils/reset.scss";
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
