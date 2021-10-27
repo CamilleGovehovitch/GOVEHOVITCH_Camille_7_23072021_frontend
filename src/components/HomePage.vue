@@ -4,13 +4,13 @@
       <div class="post" v-for="post in posts" :key="post.id">
         <PostTemplate :post="post" />
       </div>
-      <div class="createPostContainer">
+      <!-- <div class="createPostContainer">
         <router-link to="/post/new">
           <div class="createPost">
             <i class="fas fa-plus"> </i>
           </div>
         </router-link>
-      </div>
+      </div> -->
     </section>
   </div>
 </template>
@@ -28,27 +28,19 @@ export default {
       posts: null,
     };
   },
-  beforeCreate() {
+  async beforeMount() {
     const token = localStorage.getItem("token");
     if (!token) {
       window.location.href = "#/user/login";
     }
-  },
-  async beforeMount() {
     const response = await this.getPostsFromApi();
     this.posts = response.data;
     console.log(response);
   },
   computed: {
-    // ...mapGetters(['getProfile'])
   },
   methods: {
     getPostsFromApi() {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        // window.location.href = "/user/login";
-        console.log("empty");
-      }
       return this.axios.get("http://localhost:3000/api/post?limit=10&offset=1", {
         headers: {
           Accept: "application/json",
@@ -61,20 +53,15 @@ export default {
       const thumbsUps = document.querySelector(".fa-thumbs-up");
 
       if (!thumbsUps.classList.contains("liked")) {
-        console.log("green");
         thumbsUps.classList.add("liked");
         this.sendLikeToApi();
       } else {
         thumbsUps.classList.remove("liked");
-        console.log("not green");
       }
 
-      console.log(thumbsUps);
     },
     dislike() {
-      console.log("dislike");
       const thumbsDown = document.querySelector(".fa-thumbs-down");
-      console.log(thumbsDown);
       thumbsDown.classList.contains("disliked") ? thumbsDown.classList.remove("disliked") : thumbsDown.classList.add("disliked");
     },
   },
@@ -84,32 +71,6 @@ export default {
 <style lang="scss" scoped>
 $primaryColor: #fd2d02;
 
-// .header {
-//   background-color: lighten($primaryColor, 45%);
-//   display: flex;
-//   justify-content: space-between;
-//   padding: 10px 5px;
-//   margin-bottom: 15px;
-//   .profileName {
-//     display: flex;
-//     justify-content: center;
-//     align-items: center;
-//     span {
-//       font-size: 20px;
-//       font-weight: Bold;
-//       color: $primaryColor;
-//     }
-//     h1 {
-//       color: darken($primaryColor, 10%);
-//     }
-//   }
-//   .profilePictureContainer {
-//     img {
-//       width: 100px;
-//       border-radius: 50%;
-//     }
-//   }
-// }
 .main {
   background-color: lighten($primaryColor, 45%);
   .postContainer {
@@ -131,8 +92,6 @@ $primaryColor: #fd2d02;
     text-decoration: none;
     color: darken($primaryColor, 10%);
     text-align: end;
-    // bottom: 35px;
-    // right: 35px;
     .createPost {
       background-color: white;
       border-radius: 50%;
@@ -158,8 +117,8 @@ $primaryColor: #fd2d02;
         height: 70px;
       }
       @media (min-width: 2560px) {
-        width: 50px;
-        height: 50px;
+        width: 200px;
+        height: 200px;
       }
     }
   }
