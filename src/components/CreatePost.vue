@@ -1,5 +1,5 @@
 <template>
-  <div v-if="post">
+  <div>
     <div class="header">
       <img src="../assets/images/icon.png" alt="" />
       <h1 v-if="this.update">{{ updateTitle }}</h1>
@@ -8,9 +8,13 @@
     <div class="newPostContainer">
       <form action="">
         <label for="postTitle"> Titre</label>
-        <input type="text" id="postTitle" :value="!this.update ? '' : post.title" />
+        <input type="text" id="postTitle" :value="!this.update ? '' : post.title" v-if="post" />
+        <input type="text" id="postTitle" v-else />
+
         <label for="postContent">Contenu</label>
-        <textarea id="postContent" rows="10" :value="!this.update ? '' : post.content"></textarea>
+        <textarea id="postContent" rows="10" :value="!this.update ? '' : post.content" v-if="post"></textarea>
+        <textarea id="postContent" rows="10" v-else></textarea>
+
         <div class="uploadFileContainer">
           <input type="file" id="image" ref="image" class="fileContent" @change="handleFileUpload" />
         </div>
@@ -87,7 +91,7 @@ export default {
         .then(() => {
           window.location.href = "/";
         })
-        .catch(error => {
+        .catch((error) => {
           console.log("error", error.response.data.error);
           this.errors = [];
           this.errors.push(error.response.data.error);
@@ -284,8 +288,8 @@ $validationColor: #4e920e;
   }
 }
 .errorMessage {
-    color: darken($primaryColor, 10%);
-    font-size: 18px;
-    font-weight: bold;
-  }
+  color: darken($primaryColor, 10%);
+  font-size: 18px;
+  font-weight: bold;
+}
 </style>
