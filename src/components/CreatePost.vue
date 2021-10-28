@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="post">
     <div class="header">
       <img src="../assets/images/icon.png" alt="" />
       <h1 v-if="this.update">{{ updateTitle }}</h1>
