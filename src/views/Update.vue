@@ -1,33 +1,33 @@
 <template>
-    <div>
-        <UserProfile/>
-    </div>
+  <div>
+      <p>HEY par ici</p>
+  </div>
 </template>
 
 <script>
-import UserProfile from "@/components/UserProfile.vue";
 
 export default {
-  name: "User",
+  name: "Update",
   components: {
-    UserProfile,
+  },
+  data() {
+    return {
+    };
   },
   beforeMount() {
     this.checkToken();
   },
+  computed: {},
   methods: {
     checkToken() {
       const token = localStorage.getItem("token");
 
       if (!token) {
-        console.log("empty token");
-        return (window.location.href = "#/user/login");
+        window.location.href = "#/user/login";
       }
     },
   },
 };
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

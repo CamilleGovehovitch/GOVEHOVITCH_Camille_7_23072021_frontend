@@ -3,14 +3,19 @@ import VueRouter from "vue-router";
 import Login from "../views/Login.vue";
 import Signup from "../views/Signup.vue";
 import User from "../views/User.vue";
-// import HomePage from "../views/Home.vue";
 import Create from "../views/Create.vue";
 import Home from "../views/Home.vue";
-
+import test from "../views/test.vue";
+import Post from "../views/Post.vue";
 
 Vue.use(VueRouter);
 
 const routes = [
+  {
+    path: "/test",
+    name: "test",
+    component: test,
+  },
   {
     path: "/user/login",
     name: "Login",
@@ -34,7 +39,17 @@ const routes = [
   {
     path: "/post/new",
     name: "Create",
-    component: Create
+    component: Create,
+  },
+  {
+    path: "/post/:id/edit",
+    name: "Update",
+    component: Create,
+  },
+  {
+    path: "/post/:id",
+    name: "Post",
+    component: Post,
   },
   {
     path: "/about",
