@@ -28,7 +28,6 @@ export default {
     };
   },
   beforeMount() {
-    this.$store.dispatch("getUserProfile");
   },
   computed: {
     userProfile() {

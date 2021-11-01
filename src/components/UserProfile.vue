@@ -71,7 +71,6 @@ export default {
     };
   },
   async beforeMount() {
-    this.$store.dispatch("getUserProfile");
   },
   computed: {
     userProfile() {

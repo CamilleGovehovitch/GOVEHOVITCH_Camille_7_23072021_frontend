@@ -36,7 +36,7 @@ export default {
   },
   data() {
     return {
-      posts: null,
+      myPosts: null,
       postsCount: null,
       offset: 1,
       limit: 10,
@@ -44,7 +44,18 @@ export default {
   },
   async beforeMount() {
     this.checkToken();
+    this.$store.dispatch("getUserProfile");
     await this.fetchPost();
+  },
+  computed: {
+    posts: {
+      get() {
+        return this.myPosts;
+      },
+      set(value) {
+        this.myPosts = value;
+      },
+    },
   },
   methods: {
     checkToken() {
@@ -79,17 +90,28 @@ export default {
     },
     //FETCH POST
     async fetchPost() {
-      this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", true);
-      const postsResponse = await this.getPostsFromApi();
-      this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", false);
-
-      this.posts = postsResponse.data.rows;
-      this.postsCount = postsResponse.data.count;
+      try {
+        this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", true);
+        const postsResponse = await this.getPostsFromApi();
+        this.posts = postsResponse.data.rows;
+        this.postsCount = postsResponse.data.count;
+        this.$store.commit("LOADING_SPINNER_SHOW_MUTATION", false);
+      } catch (error) {
+        console.log(error);
+      }
     },
     async deletePostFromApi(payload) {
       const response = await this.sendDeletePostToApi(payload.postId);
+      console.log(response);
       if (response) {
-        this.fetchPost();
+        console.log(response, "INSIDE");
+        const postToDelete = this.posts.find((post) => {
+          return post.id === payload.postId;
+        });
+        const indexOfPostToDelete = this.posts.indexOf(postToDelete);
+        console.log(indexOfPostToDelete);
+        this.posts.splice(indexOfPostToDelete, 1);
+        await this.fetchPost("after delete");
       }
     },
     sendDeletePostToApi(postId) {
@@ -97,6 +119,7 @@ export default {
       return this.axios.delete("http://localhost:3000/api/post/" + postId, {
         headers: {
           Accept: "application/json",
+          "Cache-Control": "no-store",
           Authorization: "Bearer " + token,
         },
       });
