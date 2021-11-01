@@ -14,11 +14,11 @@
           <div>
             <div class="passwordContainer">
               <label for="userPassword">{{ password }}*</label>
-              <input id="userPassword" type="text" placeholder="mot de passe" />
+              <input id="userPassword" type="password" placeholder="mot de passe" />
             </div>
             <div class="passwordContainer">
               <label for="confirmPassword">Confirmez votre {{ password }}*</label>
-              <input id="confirmPassword" type="text" placeholder="confirmer votre mot de passe" />
+              <input id="confirmPassword" type="password" placeholder="confirmer votre mot de passe" />
             </div>
           </div>
           <div>
